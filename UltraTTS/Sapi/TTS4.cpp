@@ -6,7 +6,8 @@ CTTS4::CTTS4()
 {
 	m_BufferLength = 0;
 
-	InitTTS();
+	if (!InitTTS())
+		TerminateTTS();
 
 	//EnumVoices();
 }
@@ -111,7 +112,7 @@ BOOL CTTS4::InitTTS(void)
 
 	if (FAILED(hRes))
 	{
-		MessageBox(NULL, TEXT("Error creating TTSEnumerator (CoCreateInstance)."), NULL, MB_OK);
+		//MessageBox(NULL, TEXT("Error creating TTSEnumerator (CoCreateInstance)."), NULL, MB_OK);
 		return FALSE;
 	}
 
@@ -177,6 +178,9 @@ BOOL CTTS4::TerminateTTS(void)
 
 bool CTTS4::EnumVoices(const std::wstring& regKey)
 {
+	if (!m_pITTSEnum)
+		return false;
+
 	HRESULT hRes;
 	PITTSENUM pClone1;
 	TTSMODEINFO TTSModeInfo;

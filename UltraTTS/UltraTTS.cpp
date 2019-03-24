@@ -496,6 +496,8 @@ void CUltraTTS::OnStop()
 			return;
 	}
 
+	m_Sections.clear();
+
 	m_pProgress->setText("100%");
 	m_pTrayIcon->setToolTip(this->windowTitle());
 
@@ -744,8 +746,7 @@ void CUltraTTS::on_actionStop_triggered()
 
 void CUltraTTS::on_actionRead_Clipboard_triggered()
 {
-	QString text = QApplication::clipboard()->text();
-	Speak(text, false);
+	GrabAndRead(false);
 }
 
 void CUltraTTS::GrabCB(ECbAction CbAction)
@@ -849,7 +850,7 @@ void CUltraTTS::ReadCB(QString& text, bool bNow)
 	}
 	//
 
-	if (!m_pTTS->IsSpeaking())
+	if (m_Sections.isEmpty())
 		bNow = true;
 
 	InsertCB(text, bNow);
@@ -871,7 +872,7 @@ void CUltraTTS::Speak(const QString& String, bool bAdd)
 		m_Sections.clear();
 	
 	STextSection Section;
-	Section.Delay = m_pTTS->IsSpeaking() ? m_pCfg->value("SectionDelay", 750).toInt() : 0;
+	Section.Delay = bAdd ? m_pCfg->value("SectionDelay", 750).toInt() : 0;
 
 	if (!m_bAuto)
 	{
@@ -922,7 +923,7 @@ void CUltraTTS::Speak(const QString& String, bool bAdd)
 		}
 	}
 
-	if (m_pTTS->IsSpeaking())
+	if (bAdd)
 	{
 		m_TotalLength += String.length();
 	}
@@ -952,6 +953,9 @@ bool CUltraTTS::SpeakNext()
 
 void CUltraTTS::on_speak_next()
 {
+	if (m_Sections.isEmpty())
+		return;
+
 	QString Speaker = m_pCfg->value(m_Sections[m_SectionIndex].Lang + "_Speaker", "").toString();
 	if (!Speaker.isEmpty())
 		SelectSpeaker(Speaker);
